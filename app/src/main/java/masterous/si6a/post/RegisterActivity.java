@@ -4,16 +4,16 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-import masterous.si6a.post.databinding.ActivityMainBinding;
+import masterous.si6a.post.databinding.ActivityRegisterBinding;
 
-public class MainActivity extends AppCompatActivity {
-    private ActivityMainBinding binding;
+public class RegisterActivity extends AppCompatActivity {
+    private ActivityRegisterBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
     }
 }

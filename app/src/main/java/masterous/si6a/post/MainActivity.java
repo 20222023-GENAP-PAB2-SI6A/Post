@@ -13,10 +13,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import java.util.List;
 
 import masterous.si6a.post.databinding.ActivityMainBinding;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
@@ -30,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        if (!Utilities.checkValue(MainActivity.this, "xUsername")) {
+        if (!Utilities.checkValue(MainActivity.this, "xUserId")) {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
@@ -79,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+                popupMenu.show();
             }
         });
 
@@ -92,7 +97,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void deleteUnggah(String id) {
-        // memanggil API untuk delete
+        APIService api = Utilities.getRetrofit().create(APIService.class);
+        Call<ValueNoData> call = api.deleteUnggah(id);
+        call.enqueue(new Callback<ValueNoData>() {
+            @Override
+            public void onResponse(Call<ValueNoData> call, Response<ValueNoData> response) {
+                if (response.code() == 200) {
+                    int success = response.body().getSuccess();
+                    String message = response.body().getMessage();
+
+                    if (success == 1) {
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                        getAllUnggah();
+                    } else {
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Response " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ValueNoData> call, Throwable t) {
+                System.out.println("Retrofit Error : " + t.getMessage());
+                Toast.makeText(MainActivity.this, "Retrofit Error : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -103,8 +133,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void getAllUnggah() {
         binding.progressBar.setVisibility(View.VISIBLE);
-        // memanggil data unggah dari server...
-        binding.progressBar.setVisibility(View.GONE);
+        APIService api = Utilities.getRetrofit().create(APIService.class);
+        Call<ValueData<List<Unggah>>> call = api.getUnggah();
+        call.enqueue(new Callback<ValueData<List<Unggah>>>() {
+            @Override
+            public void onResponse(Call<ValueData<List<Unggah>>> call, Response<ValueData<List<Unggah>>> response) {
+                binding.progressBar.setVisibility(View.GONE);
+                if (response.code() == 200) {
+                    int success = response.body().getSuccess();
+                    String message = response.body().getMessage();
+
+                    if (success == 1) {
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                        data = response.body().getData();
+                        unggahViewAdapter.setData(data);
+                    } else {
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Response "+ response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ValueData<List<Unggah>>> call, Throwable t) {
+                binding.progressBar.setVisibility(View.GONE);
+                System.out.println("Retrofit Error : " + t.getMessage());
+                Toast.makeText(MainActivity.this, "Retrofit Error : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
